@@ -2,94 +2,64 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>مِصْهَر الأوزان</title>
-<meta name="description" content="اكتشف أوزان الأفعال العربية في القرآن الكريم: صُبَّ حروف الجذر في قالب الوزن واكتشف المعنى">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>زليج الأوزان</title>
+<meta name="description" content="أوزان الأفعال العربية ومشتقاتها في القرآن الكريم، مرسومة جدارًا من الزليج: كل جذر نجمة، وكل وزن بتلة">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Reem+Kufi:wght@500;700&family=IBM+Plex+Sans+Arabic:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Aref+Ruqaa:wght@700&family=IBM+Plex+Sans+Arabic:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
-<div class="embers" aria-hidden="true"></div>
-<header class="top">
+<svg id="wall" aria-label="جدار الأوزان"></svg>
+
+<header class="hud top">
   <div class="brand">
-    <span class="logo">⚒</span>
-    <div>
-      <h1>مِصْهَر الأوزان</h1>
-      <p>صُبَّ الجذر في القالب… واستخرج المعنى</p>
-    </div>
+    <h1>زليج الأوزان</h1>
+    <p>كل جذر نجمة · كل وزن بتلة</p>
   </div>
-  <nav class="tabs" role="tablist">
-    <button class="tab active" data-view="forge" role="tab">المِصْهَر</button>
-    <button class="tab" data-view="grid" role="tab">الشبكة</button>
-    <button class="tab" data-view="quiz" role="tab">الاختبار</button>
-  </nav>
+  <div class="search">
+    <input id="q" type="search" placeholder="ابحث عن جذر أو فعل أو اسم… مثل: غفر، استطعم، مسلم" autocomplete="off">
+    <div id="results" class="results hidden"></div>
+  </div>
+  <div class="stats">
+    <div><b id="sRoots">٠</b><span>جذرًا</span></div>
+    <div><b id="sVerbs">٠</b><span>فعلًا</span></div>
+    <div><b id="sNouns">٠</b><span>اسمًا</span></div>
+    <button id="quizBtn" class="pill">✦ تحدٍّ</button>
+  </div>
 </header>
 
-<main>
-  <!-- المصهر -->
-  <section id="forge" class="view active">
-    <div class="step">
-      <h2><span class="num">١</span> اختر الجذر</h2>
-      <div id="rootList" class="chips"></div>
-    </div>
+<div class="hud zoom">
+  <button data-z="in" aria-label="تكبير">＋</button>
+  <button data-z="out" aria-label="تصغير">－</button>
+  <button data-z="fit" aria-label="ملء الشاشة">⤢</button>
+</div>
 
-    <div class="anvil">
-      <div class="ingots-wrap">
-        <div class="label">حروف الجذر</div>
-        <div id="ingots" class="ingots"></div>
-        <div id="rootGloss" class="gloss"></div>
-      </div>
-      <div class="pour-arrow" aria-hidden="true">⟵</div>
-      <div class="mold-wrap">
-        <div class="label">القالب <span id="moldName"></span></div>
-        <div id="mold" class="mold"></div>
-        <button id="pourBtn" class="pour">صُبَّ الجذر في القالب 🔥</button>
-      </div>
-    </div>
+<div class="hud hint" id="hint">اسحب للتحريك · العجلة للتكبير · انقر على نجمة لتفتحها · اختر وزنًا في الأسفل لترى انتشاره</div>
 
-    <div class="step">
-      <h2><span class="num">٢</span> اختر القالب (الوزن)</h2>
-      <div id="waznList" class="molds"></div>
-    </div>
+<nav class="hud filters" id="filters"></nav>
 
-    <div id="result" class="result hidden"></div>
-  </section>
+<aside id="side" class="side hidden"><button class="x" aria-label="إغلاق">✕</button><div id="sideBody"></div></aside>
 
-  <!-- الشبكة -->
-  <section id="grid" class="view">
-    <div class="intro">
-      <p>كل سطر <b>جذر</b>، وكل عمود <b>وزن</b>. الخانة المضيئة فعلٌ ورد في القرآن الكريم.
-      اقرأ <b>عمودًا</b> لترى المعنى نفسه يتكرّر في جذور مختلفة، واقرأ <b>سطرًا</b> لترى الجذر الواحد يتشكّل بمعانٍ متعدّدة.</p>
-      <div class="legend">
-        <span><i class="lg on"></i> ورد في القرآن</span>
-        <span><i class="lg gen"></i> صيغة قياسية لم ترد في القرآن</span>
-      </div>
-    </div>
-    <div class="grid-scroll"><table id="gridTable" class="gtable"></table></div>
-  </section>
+<div id="rose" class="rose hidden">
+  <button class="x back" aria-label="رجوع">→ الجدار</button>
+  <div class="rose-stage"><svg id="roseSvg" viewBox="-320 -300 640 600"></svg></div>
+  <div class="rose-panel" id="rosePanel"></div>
+</div>
 
-  <!-- الاختبار -->
-  <section id="quiz" class="view">
-    <div class="quiz-head">
-      <div class="score">النقاط: <b id="qScore">0</b> / <b id="qTotal">0</b></div>
-      <div class="streak">🔥 <b id="qStreak">0</b></div>
-    </div>
-    <div id="quizCard" class="quiz-card"></div>
-  </section>
-</main>
-
-<div id="modal" class="modal hidden" role="dialog" aria-modal="true">
-  <div class="modal-box">
-    <button class="close" aria-label="إغلاق">✕</button>
-    <div id="modalBody"></div>
+<div id="quiz" class="quiz hidden">
+  <div class="quiz-box">
+    <button class="x" aria-label="إغلاق">✕</button>
+    <div class="quiz-head"><span>النقاط <b id="qScore">٠</b> / <b id="qTotal">٠</b></span><span>🔥 <b id="qStreak">٠</b></span></div>
+    <div id="quizCard"></div>
   </div>
 </div>
 
-<footer class="foot">مِصْهَر الأوزان — لفهم أفعال القرآن الكريم عن طريق أوزانها</footer>
+<div id="tip" class="tip hidden"></div>
 
 <script src="js/data.js"></script>
+<script src="js/morph.js"></script>
 <script src="js/app.js"></script>
 </body>
 </html>

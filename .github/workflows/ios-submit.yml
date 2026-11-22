@@ -1,0 +1,38 @@
+# Version App Store : version + build + textes de la fiche, puis envoi à App Review.
+#
+# Lancement manuel : Actions → « iOS → App Store (soumission) » → Run workflow.
+# `submit` à false prépare seulement la version (à vérifier dans App Store Connect).
+# Secrets : ASC_KEY_ID, ASC_ISSUER_ID, ASC_API_KEY_BASE64 (les mêmes que pour TestFlight).
+name: iOS → App Store (soumission)
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Version marketing (CFBundleShortVersionString)
+        required: true
+        default: "1.0.0"
+      build_number:
+        description: Numéro du build TestFlight à publier
+        required: true
+      submit:
+        description: Envoyer à App Review (sinon, préparation seule)
+        type: boolean
+        default: false
+
+jobs:
+  submit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - run: pip install pyjwt cryptography requests
+      - name: App Store Connect
+        env:
+          ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+          ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+          ASC_API_KEY_BASE64: ${{ secrets.ASC_API_KEY_BASE64 }}
+        run: |
+          python3 tools/app-store/asc_release.py \
+            --version "${{ inputs.version }}" --build "${{ inputs.build_number }}" \
+            ${{ inputs.submit && '--submit' || '' }}

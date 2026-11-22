@@ -1,0 +1,110 @@
+name: Android → Play Store
+
+# Compile l'App Bundle Android (AAB) signé avec la clé d'upload Google Play (la même que
+# Chabaka), plus un APK universel pour les tests directs, et les dépose en artefacts du run.
+# Avec `track`, l'AAB est aussi envoyé sur Google Play par le compte de service.
+# Lancement manuel (onglet Actions → ce workflow → Run workflow).
+#
+# Secrets requis (Settings → Secrets and variables → Actions), mêmes valeurs que Chabaka :
+#   ANDROID_KEYSTORE_BASE64    keystore d'upload (.jks) en base64
+#   ANDROID_KEYSTORE_PASSWORD  mot de passe du keystore
+#   ANDROID_KEY_ALIAS          alias de la clé (upload)
+#   ANDROID_KEY_PASSWORD       mot de passe de la clé
+#   PLAY_SERVICE_ACCOUNT_JSON  clé JSON du compte de service (à inviter aussi sur l'app Awzan)
+# Sans la clé d'upload, le build se fait quand même, signé en debug (non publiable).
+
+on:
+  workflow_dispatch:
+    inputs:
+      build_number:
+        description: versionCode (doit augmenter à chaque envoi sur Play)
+        required: true
+        default: "1"
+      track:
+        description: Piste Google Play (internal, production…) ; vide = pas d'envoi
+        required: false
+        default: ""
+      status:
+        description: completed (publier / envoyer en revue) ou draft (brouillon, obligatoire tant que l'app n'est pas publiée)
+        required: false
+        default: completed
+      listing:
+        description: Mettre aussi à jour la fiche Play (textes, icône, captures)
+        type: boolean
+        default: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    defaults:
+      run:
+        working-directory: mobile
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: 3.41.9
+          channel: stable
+          cache: true
+
+      - name: Clé d'upload
+        env:
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+        run: |
+          if [ -n "$ANDROID_KEYSTORE_BASE64" ]; then
+            echo "$ANDROID_KEYSTORE_BASE64" | base64 --decode > "$RUNNER_TEMP/upload.jks"
+            echo "ANDROID_KEYSTORE_PATH=$RUNNER_TEMP/upload.jks" >> "$GITHUB_ENV"
+            echo "Clé d'upload présente."
+          else
+            echo "::warning::Secret ANDROID_KEYSTORE_BASE64 absent : build signé en debug, non publiable."
+          fi
+
+      - name: Site embarqué et dépendances
+        run: |
+          sh tool/sync_web.sh
+          flutter pub get
+
+      - name: Build App Bundle
+        env:
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          flutter build appbundle --release --build-number "${{ inputs.build_number }}"
+          ls -la build/app/outputs/bundle/release/
+
+      - name: Build APK universel (tests directs)
+        env:
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: flutter build apk --release --build-number "${{ inputs.build_number }}"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: awzan-android-${{ inputs.build_number }}
+          path: |
+            mobile/build/app/outputs/bundle/release/*.aab
+            mobile/build/app/outputs/flutter-apk/app-release.apk
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Envoi sur Google Play
+        if: inputs.track != '' || inputs.listing
+        working-directory: .
+        env:
+          PLAY_SERVICE_ACCOUNT_JSON: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
+        run: |
+          pip install --quiet google-api-python-client google-auth
+          ARGS=""
+          if [ -n "${{ inputs.track }}" ]; then
+            ARGS="--aab mobile/build/app/outputs/bundle/release/app-release.aab --track ${{ inputs.track }} --status ${{ inputs.status }}"
+          fi
+          python3 tools/play-store/play_upload.py $ARGS ${{ inputs.listing && '--listing' || '' }}

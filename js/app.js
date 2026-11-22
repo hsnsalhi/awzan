@@ -356,6 +356,20 @@ document.addEventListener('keydown', e => {
   setFilter(null);
 });
 
+// ===== التطبيق (WebView): زرّ الرجوع والروابط الخارجية
+window.awzanBack = () => {
+  for (const sel of ['#about', '#quiz', '#rose', '#results']) {
+    const el = $(sel);
+    if (!el.classList.contains('hidden')) { el.classList.add('hidden'); return true; }
+  }
+  if (filter) { setFilter(null); return true; }
+  return false;
+};
+document.addEventListener('click', e => {
+  const a = e.target.closest('a[target=_blank]');
+  if (a && window.AwzanApp) { e.preventDefault(); window.AwzanApp.postMessage(a.href); }
+});
+
 // ===== البدء
 $('#sRoots').textContent = AR(META.counts.roots);
 $('#sVerbs').textContent = AR(META.counts.verbs);

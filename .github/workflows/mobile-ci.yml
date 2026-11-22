@@ -1,0 +1,31 @@
+name: Mobile CI
+
+# Analyse et tests de l'app Flutter (mobile/) à chaque push qui touche l'app ou le site embarqué.
+on:
+  push:
+    paths: ["mobile/**", "index.html", "css/**", "js/**", "data/**", "fonts/**", ".github/workflows/mobile-ci.yml"]
+  pull_request:
+
+concurrency:
+  group: mobile-ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  flutter:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: mobile
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: 3.41.9
+          channel: stable
+          cache: true
+      - run: sh tool/sync_web.sh
+      - run: flutter pub get
+      - run: dart format --output=none --set-exit-if-changed lib test
+      - run: flutter analyze --no-fatal-infos
+      - run: flutter test --reporter expanded

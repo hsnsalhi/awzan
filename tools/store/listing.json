@@ -1,0 +1,34 @@
+{
+  "support_url": "https://hsnsalhi.github.io/awzan/",
+  "marketing_url": "https://hsnsalhi.github.io/awzan/",
+  "privacy_url": "https://hsnsalhi.github.io/awzan/privacy.html",
+  "copyright": "2026 TechLYB",
+  "email": "contact@techlyb.com",
+  "ar": {
+    "name": "زليج الأوزان: أوزان الأفعال",
+    "subtitle": "أوزان أفعال القرآن الكريم",
+    "short": "افهم أفعال القرآن الكريم بأوزانها: جدار زليج تفاعلي لكل جذر، بلا إنترنت.",
+    "keywords": "أوزان,صرف,قرآن,أفعال,جذور,عربية,مشتقات,اشتقاق,لغة,تفسير,مفردات,معجم,تجويد",
+    "promo": "كل جذر نجمة، وكل وزن بتلة: اكتشف كيف يغيّر الوزن معنى الفعل في القرآن الكريم.",
+    "description": "في العربية عشرة أوزان رئيسة للفعل الثلاثي، ولكلّ وزن معنى يضيفه إلى الجذر: «اِسْتَفْعَلَ» للطلب (استغفر: طلب المغفرة)، «فَاعَلَ» للمشاركة (قاتل، جاهد)، «أَفْعَلَ» للتعدية (أخرج، أنزل)… فإذا عرفتَ وزن الفعل وقارنته بأفعال أخرى على الوزن نفسه، فهمتَ معناه في الآية.\n\nزليج الأوزان يرسم أفعال القرآن الكريم كلّها جدارًا من الزليج:\n\n• ٩٤١ جذرًا و١٤٧٤ فعلًا في ١٩٣٥٣ موضعًا، مرتّبة في ألواح بحسب الحرف الأول.\n• كل جذر نجمة عشرية، وكل بتلة وزن: الملوّنة وردت في القرآن، والمنقّطة صيغة قياسية لم ترد.\n• اختر وزنًا فتضيء بتلاته في الجدار كلّه، مع معانيه وقوالبه وكل أفعاله ومشتقاته في القرآن.\n• افتح نجمة جذر: الفعل في كل وزن، تشريحه (الحروف الزائدة والأصلية)، صيغه الواردة وآياته كلها بالرسم العثماني.\n• المشتقّات: المضارع، المصدر، اسم الفاعل، اسم المفعول، مع ما ورد منها في القرآن.\n• مادّة الجذر في «مقاييس اللغة» لابن فارس و«المفردات» للراغب الأصفهاني.\n• تحدٍّ: استنتج الوزن أو المعنى أو قالب الاسم من آية.\n\nيعمل التطبيق كاملًا دون اتصال بالإنترنت، بلا حساب ولا إعلانات ولا جمع لأيّ بيانات.\n\nالمصادر: مدوّنة القرآن العربية (Quranic Arabic Corpus، جامعة ليدز)، نصّ المصحف من مشروع تنزيل، ومعجما ابن فارس والراغب عبر OpenITI.",
+    "whats_new": "الإصدار الأول: جدار الأوزان، النجمة المفتوحة، المشتقات، المعجمان، والتحدّي."
+  },
+  "fr": {
+    "name": "Awzan — schèmes du Coran",
+    "subtitle": "Les schèmes verbaux du Coran",
+    "short": "Les verbes du Coran par leur schème (wazn) : un mur de zellige interactif.",
+    "keywords": "awzan,wazn,arabe,coran,verbe,racine,morphologie,schème,grammaire,dérivation,lexique",
+    "promo": "Chaque racine est une rosace, chaque schème un pétale : voyez comment le wazn change le sens du verbe.",
+    "description": "En arabe, dix schèmes (awzān) principaux transforment le sens d'une racine : istafʿala exprime la demande (istaghfara : demander pardon), fāʿala la réciprocité (qātala), afʿala le factitif (akhraja : faire sortir)… Connaître le schème d'un verbe et le comparer à d'autres verbes du même schème, c'est comprendre son sens dans le verset.\n\nZellige des awzān dessine tous les verbes du Coran comme un mur de zellige :\n\n• 941 racines, 1 474 verbes, 19 353 occurrences, rangées par première lettre.\n• Chaque racine est une rosace à dix pétales, un par schème : coloré s'il est attesté dans le Coran.\n• Choisissez un schème : ses pétales s'allument sur tout le mur, avec ses sens, ses modèles et tous ses verbes.\n• Ouvrez une racine : le verbe dans chaque schème, ses lettres ajoutées et radicales, ses formes et tous ses versets (graphie uthmanie).\n• Les dérivés : inaccompli, maṣdar, participes actif et passif.\n• La racine dans les dictionnaires d'Ibn Fāris et d'al-Rāghib al-Iṣfahānī.\n• Défi : retrouver le schème ou le sens à partir d'un verset.\n\nEntièrement hors ligne, sans compte, sans publicité, sans aucune collecte de données. Interface en arabe.\n\nSources : Quranic Arabic Corpus (Université de Leeds), texte du Coran du projet Tanzil, dictionnaires via OpenITI.",
+    "whats_new": "Première version : le mur des schèmes, les rosaces, les dérivés, les dictionnaires et le défi."
+  },
+  "en": {
+    "name": "Awzan — Quranic verb forms",
+    "subtitle": "The verb patterns of the Quran",
+    "short": "Quranic verbs through their pattern (wazn): an interactive zellige wall.",
+    "keywords": "awzan,wazn,arabic,quran,verb,root,morphology,pattern,grammar,derivation,vocabulary",
+    "promo": "Every root is a rosette, every pattern a petal: see how the wazn changes a verb's meaning.",
+    "description": "In Arabic, ten main verb patterns (awzān) reshape the meaning of a root: istafʿala expresses request (istaghfara: to seek forgiveness), fāʿala reciprocity (qātala), afʿala the causative (akhraja: to bring out)… Knowing a verb's pattern and comparing it with other verbs of the same pattern lets you understand it in the verse.\n\nZellige of Awzan draws every verb of the Quran as a zellige wall:\n\n• 941 roots, 1,474 verbs, 19,353 occurrences, grouped by first letter.\n• Each root is a ten-petal rosette, one petal per pattern, coloured when attested in the Quran.\n• Pick a pattern and its petals light up across the wall, with its meanings, templates and all its verbs.\n• Open a root: the verb in every pattern, its added and radical letters, its forms and all its verses (Uthmani script).\n• Derived nouns: imperfect, maṣdar, active and passive participles.\n• The root in the dictionaries of Ibn Fāris and al-Rāghib al-Iṣfahānī.\n• Challenge: find the pattern or meaning from a verse.\n\nFully offline, no account, no ads, no data collection. Arabic interface.\n\nSources: Quranic Arabic Corpus (University of Leeds), Quran text from the Tanzil project, dictionaries via OpenITI.",
+    "whats_new": "First release: the pattern wall, rosettes, derived nouns, dictionaries and the challenge."
+  }
+}

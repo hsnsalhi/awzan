@@ -1,0 +1,122 @@
+name: iOS → TestFlight
+
+# Compile l'app iOS sur un runner macOS, la signe et l'envoie sur TestFlight.
+# Le profil de provisionnement « Awzan App Store » est créé (ou repris) automatiquement par
+# l'API App Store Connect (tools/app-store/asc_profile.py), avec le certificat de distribution
+# de l'équipe : pas de profil à fabriquer à la main.
+# Lancement manuel (onglet Actions → ce workflow → Run workflow).
+#
+# Secrets requis, mêmes valeurs que Chabaka :
+#   IOS_P12_BASE64        certificat Apple Distribution + clé privée (.p12) en base64
+#   IOS_P12_PASSWORD      mot de passe du .p12
+#   APPLE_TEAM_ID         identifiant d'équipe (K69HUXQMGL)
+#   ASC_KEY_ID            App Store Connect API : Key ID (rôle Admin ou App Manager)
+#   ASC_ISSUER_ID         App Store Connect API : Issuer ID
+#   ASC_API_KEY_BASE64    App Store Connect API : fichier .p8 en base64
+
+on:
+  workflow_dispatch:
+    inputs:
+      build_number:
+        description: Numéro de build (doit augmenter à chaque envoi)
+        required: true
+        default: "1"
+
+jobs:
+  build-upload:
+    runs-on: macos-26
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+
+      # Apple exige le SDK iOS 26 (Xcode 26+) pour tout envoi App Store Connect.
+      - uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: latest-stable
+      - run: xcodebuild -version
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: 3.41.9
+          channel: stable
+          cache: true
+
+      - name: Certificat de distribution
+        env:
+          IOS_P12_BASE64: ${{ secrets.IOS_P12_BASE64 }}
+          IOS_P12_PASSWORD: ${{ secrets.IOS_P12_PASSWORD }}
+        run: |
+          set -e
+          KEYCHAIN="$RUNNER_TEMP/build.keychain-db"
+          KEYCHAIN_PWD="$(uuidgen)"
+          echo "$IOS_P12_BASE64" | base64 --decode > "$RUNNER_TEMP/dist.p12"
+          security create-keychain -p "$KEYCHAIN_PWD" "$KEYCHAIN"
+          security set-keychain-settings -lut 21600 "$KEYCHAIN"
+          security unlock-keychain -p "$KEYCHAIN_PWD" "$KEYCHAIN"
+          security import "$RUNNER_TEMP/dist.p12" -P "$IOS_P12_PASSWORD" -A \
+            -t cert -f pkcs12 -k "$KEYCHAIN"
+          security set-key-partition-list -S apple-tool:,apple: -k "$KEYCHAIN_PWD" "$KEYCHAIN" >/dev/null
+          security list-keychain -d user -s "$KEYCHAIN" login.keychain-db
+          security find-identity -v -p codesigning "$KEYCHAIN"
+          # Numéro de série du certificat, pour retrouver le même côté API.
+          SERIAL=$(openssl pkcs12 -in "$RUNNER_TEMP/dist.p12" -passin "pass:$IOS_P12_PASSWORD" -nokeys -legacy 2>/dev/null \
+            | openssl x509 -noout -serial 2>/dev/null | cut -d= -f2 || true)
+          if [ -z "$SERIAL" ]; then
+            SERIAL=$(openssl pkcs12 -in "$RUNNER_TEMP/dist.p12" -passin "pass:$IOS_P12_PASSWORD" -nokeys \
+              | openssl x509 -noout -serial | cut -d= -f2)
+          fi
+          echo "CERT_SERIAL=$SERIAL" >> "$GITHUB_ENV"
+
+      - name: Profil App Store (API)
+        env:
+          ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+          ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+          ASC_API_KEY_BASE64: ${{ secrets.ASC_API_KEY_BASE64 }}
+        run: |
+          pip3 install --quiet --break-system-packages pyjwt cryptography requests 2>/dev/null \
+            || pip3 install --quiet pyjwt cryptography requests
+          mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
+          python3 tools/app-store/asc_profile.py --serial "$CERT_SERIAL" \
+            --out ~/Library/MobileDevice/Provisioning\ Profiles/awzan.mobileprovision
+
+      - name: Options d'export
+        env:
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+        run: |
+          sed -e "s/__TEAM_ID__/$APPLE_TEAM_ID/" -e "s/__PROFILE_NAME__/Awzan App Store/" \
+            mobile/ios/ci/ExportOptions.plist > "$RUNNER_TEMP/ExportOptions.plist"
+
+      - name: Site embarqué et dépendances
+        working-directory: mobile
+        run: |
+          sh tool/sync_web.sh
+          flutter pub get
+          cd ios && pod install
+
+      - name: Build IPA
+        working-directory: mobile
+        run: |
+          flutter build ipa --release \
+            --build-number "${{ inputs.build_number }}" \
+            --export-options-plist "$RUNNER_TEMP/ExportOptions.plist"
+          ls -la build/ios/ipa/
+
+      - name: Upload TestFlight
+        env:
+          ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+          ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+          ASC_API_KEY_BASE64: ${{ secrets.ASC_API_KEY_BASE64 }}
+        run: |
+          mkdir -p ~/.appstoreconnect/private_keys
+          echo "$ASC_API_KEY_BASE64" | base64 --decode \
+            > ~/.appstoreconnect/private_keys/AuthKey_$ASC_KEY_ID.p8
+          xcrun altool --upload-app -f mobile/build/ios/ipa/*.ipa -t ios \
+            --apiKey "$ASC_KEY_ID" --apiIssuer "$ASC_ISSUER_ID"
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: awzan-ipa
+          path: mobile/build/ios/ipa/*.ipa
+          if-no-files-found: ignore
+          retention-days: 14

@@ -1,7 +1,7 @@
 :root{
   --bg:#0a1216; --ink:#0f1b21; --panel:#101c22ee; --line:#24414a; --text:#f3ead6; --muted:#9fb0aa;
   --gold:#d9b45a; --ivory:#f1e6cc;
-  --f-ui:'IBM Plex Sans Arabic',system-ui,sans-serif; --f-q:'Amiri',serif; --f-t:'Aref Ruqaa','Amiri',serif;
+  --f-ui:'IBM Plex Sans Arabic',system-ui,sans-serif; --f-qr:'Amiri Quran','Amiri',serif; --f-q:'Amiri',serif; --f-t:'Aref Ruqaa','Amiri',serif;
 }
 *{box-sizing:border-box}
 html,body{margin:0;height:100%;overflow:hidden}
@@ -34,7 +34,7 @@ button{font-family:inherit}
 
 /* واجهة عائمة */
 .hud{position:fixed;z-index:10}
-.top{top:0;inset-inline:0;display:flex;gap:16px;align-items:center;justify-content:space-between;padding:14px 20px;
+.top{z-index:12;top:0;inset-inline:0;display:flex;gap:16px;align-items:center;justify-content:space-between;padding:14px 20px;
   background:linear-gradient(#0a1216f2,#0a121600);pointer-events:none}
 .top>*{pointer-events:auto}
 .brand h1{margin:0;font:700 34px/1.1 var(--f-t);color:var(--gold);text-shadow:0 0 24px #d9b45a55}
@@ -125,7 +125,7 @@ h3{font:600 15px var(--f-ui);color:var(--gold);margin:18px 0 8px}
 .dot.z{background:var(--gold)}.dot.rl{background:#e8e0c8}
 .mean{margin:12px 0 0;font-size:16px}
 .why{margin:2px 0 10px;color:var(--c,var(--gold));font-weight:600}
-.ayah{font:400 24px/2 var(--f-q);text-align:center;background:#060c0f;border:1px solid #c9a22744;border-radius:14px;padding:12px}
+.ayah{font:400 24px/2.1 var(--f-qr);margin-top:8px;text-align:center;background:#060c0f;border:1px solid #c9a22744;border-radius:14px;padding:12px}
 .ayah.sm{font-size:20px;margin-top:8px}
 .ayah mark{background:none;color:var(--gold);font-weight:700;text-shadow:0 0 12px #d9b45a88}
 .ref{display:block;font:13px var(--f-ui);color:var(--muted)}
@@ -169,3 +169,33 @@ h3{font:600 15px var(--f-ui);color:var(--gold);margin:18px 0 8px}
   .big-verb{font-size:52px}
   .opts{grid-template-columns:1fr}
 }
+
+/* إضافات: البساتين، الحروف، المعاجم */
+.loading{position:fixed;inset:0;display:grid;place-items:center;font:700 28px var(--f-t);color:var(--gold);z-index:50;background:var(--bg)}
+.gbg{fill:#0c171c;stroke:#c9a22740;stroke-width:3;stroke-dasharray:14 8}
+.gletter{font:700 150px var(--f-t);fill:#c9a227;text-anchor:middle;opacity:.9}
+.gcount{font:34px var(--f-ui);fill:#9fb0aa;text-anchor:end}
+.grove .tile{animation:none}
+.abc{top:96px;right:50%;transform:translateX(50%);display:flex;gap:3px;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:4px;max-width:calc(100vw - 32px);overflow-x:auto;scrollbar-width:none}
+.abc button{flex:none;width:30px;height:32px;font:700 18px var(--f-q);color:var(--text);background:none;border:0;border-radius:8px;cursor:pointer}
+.abc button:hover{background:var(--gold);color:#0a1216}
+.f small{font:11px var(--f-ui);color:var(--muted)}
+.pill.round{width:36px;padding:7px 0}
+.wforms{display:flex;flex-wrap:wrap;gap:5px}
+.wf{font:700 18px var(--f-qr);background:#ffffff07;border:1px solid var(--line);border-radius:10px;padding:2px 10px;color:var(--text);cursor:pointer}
+.wf small{font:11px var(--f-ui);color:var(--muted);margin-right:4px}
+.wf.on,.wf:hover{border-color:var(--gold)}
+.an{font-family:var(--f-qr);color:var(--gold)}
+.ayah .ref{margin-top:2px}
+.more{display:block;margin:8px auto 0;background:none;border:1px dashed var(--line);color:var(--muted);border-radius:999px;padding:4px 14px;cursor:pointer;font:13px var(--f-ui)}
+.more:hover{color:var(--gold);border-color:var(--gold)}
+.gloss-box{background:#ffffff07;border-right:3px solid var(--c);border-radius:10px;padding:4px 12px;margin-top:10px}
+.gloss-box p{margin:4px 0}
+.dict{margin-top:14px;background:#ffffff06;border:1px solid var(--line);border-radius:12px;padding:8px 14px}
+.dict summary{cursor:pointer;color:var(--gold);font-weight:600}
+.dict p{font:17px/1.9 var(--f-q);color:#e6dcc4;max-height:320px;overflow:auto;margin:8px 0 0}
+.about h2{font:700 30px var(--f-t);color:var(--gold);margin:0}
+.about a{color:var(--gold)}
+.about li{margin-bottom:6px}
+.tip i{font-style:normal;font-family:var(--f-q);font-size:15px}
+@media (max-width:820px){ .abc{top:112px} .stats div:nth-child(3){display:none} }

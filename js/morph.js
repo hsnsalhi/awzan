@@ -1,20 +1,25 @@
-// الصرف: صياغة الأوزان ومشتقاتها
-const HARAKAT = /[ً-ْٰ]/g;
+// الصرف: صياغة الأوزان ومشتقاتها، وربطها ببيانات المدوّنة القرآنية
+const HARAKAT = /[ً-ٰٟؐ-ؚۖ-ۭ]/g;
 const skel = s => (s || '').replace(HARAKAT, '');
+const norm = s => skel(s).replace(/[ٱأإآ]/g, 'ا').replace(/ى/g, 'ي').replace(/ـ/g, '').replace(/\s/g, '');
+const show = s => (s || '').replace(/ٱ/g, 'ا');
 const WEAK = 'اويءأؤئى';
 const W = id => AWZAN.find(w => w.id === id);
-const R = id => ROOTS.find(r => r.id === id);
-const verbOf = (rid, w) => VERBS.find(v => v.r === rid && v.w === w);
 const KINDS = { mu: 'المضارع', ms: 'المصدر', fa: 'اسم الفاعل', mf: 'اسم المفعول' };
 const KIND_KEYS = ['mu', 'ms', 'fa', 'mf'];
 
-// التاء في افتعل بعد حروف الإطباق والزاي
+// تُملأ بعد تحميل البيانات
+let ROOTS = [], ROOT_BY_ID = {}, ROOT_BY_R = {}, SURAS = {}, META = {};
+const R = id => ROOT_BY_ID[id];
+const curOf = (r, w) => CURATED.find(v => v.r === r.r && v.w === w);
+
 function iftaT(a) {
   if ('صضطظ'.includes(a)) return 'ط';
   if (a === 'ز') return 'د';
   return 'ت';
 }
 function canGenerate(root, wid) {
+  if (root.l.length !== 3) return false;
   const [a, b, c] = root.l;
   if (wid === 1 || wid === 9) return false;
   if ([a, b, c].some(x => WEAK.includes(x))) return false;
@@ -23,7 +28,6 @@ function canGenerate(root, wid) {
   if (wid === 8 && 'دذثت'.includes(a)) return false;
   return true;
 }
-// [الماضي، المضارع، المصدر، اسم الفاعل، اسم المفعول]
 const TPL = {
   2:  (a,b,c) => [a+'َ'+b+'َّ'+c+'َ', 'يُ'+a+'َ'+b+'ِّ'+c+'ُ', 'تَ'+a+'ْ'+b+'ِي'+c, 'مُ'+a+'َ'+b+'ِّ'+c, 'مُ'+a+'َ'+b+'َّ'+c],
   3:  (a,b,c) => [a+'َا'+b+'َ'+c+'َ', 'يُ'+a+'َا'+b+'ِ'+c+'ُ', 'مُ'+a+'َا'+b+'َ'+c+'َة', 'مُ'+a+'َا'+b+'ِ'+c, 'مُ'+a+'َا'+b+'َ'+c],
@@ -35,7 +39,6 @@ const TPL = {
   9:  (a,b,c) => ['اِ'+a+'ْ'+b+'َ'+c+'َّ', 'يَ'+a+'ْ'+b+'َ'+c+'ُّ', 'اِ'+a+'ْ'+b+'ِ'+c+'َا'+c, 'مُ'+a+'ْ'+b+'َ'+c+'ّ', ''],
   10: (a,b,c) => ['اِسْتَ'+a+'ْ'+b+'َ'+c+'َ', 'يَسْتَ'+a+'ْ'+b+'ِ'+c+'ُ', 'اِسْتِ'+a+'ْ'+b+'َا'+c, 'مُسْتَ'+a+'ْ'+b+'ِ'+c, 'مُسْتَ'+a+'ْ'+b+'َ'+c],
 };
-// أنماط الوزن (بحروف ف ع ل)
 function patterns(wid) {
   if (wid === 1) return { v: 'فَعَلَ / فَعِلَ / فَعُلَ', mu: 'يَفْعُلُ / يَفْعِلُ / يَفْعَلُ', ms: 'سماعي', fa: 'فَاعِل', mf: 'مَفْعُول' };
   const [v, mu, ms, fa, mf] = TPL[wid]('ف', 'ع', 'ل', 'ت');
@@ -48,24 +51,64 @@ function generateVerb(root, wid) {
 }
 // كل ما يخصّ الجذر في الوزن
 function formFor(root, wid) {
-  const v = verbOf(root.id, wid);
-  const g = generateVerb(root, wid);
-  const key = root.id + '-' + wid;
-  let d = null, irregular = false;
-  if (FORM_OVERRIDES[key]) { d = FORM_OVERRIDES[key]; irregular = true; }
-  else if (wid === 1 && FORM1[root.id]) d = FORM1[root.id];
+  const att = root.f[wid], cur = curOf(root, wid), g = generateVerb(root, wid);
+  const key = root.r + '-' + wid;
+  let d = null, overridden = false;
+  if (FORM_OVERRIDES[key]) { d = FORM_OVERRIDES[key]; overridden = true; }
+  else if (wid === 1 && FORM1[root.r]) d = FORM1[root.r];
   else if (g) { const [a, b, c] = root.l; d = TPL[wid](a, b, c, iftaT(a)).slice(1); }
-  const der = d ? { mu: d[0], ms: d[1], fa: d[2], mf: d[3] } : null;
-  if (der && MASDAR_EXTRA[key]) der.ms = MASDAR_EXTRA[key] + ' وَ' + der.ms;
-  if (v) return { kind: 'quran', text: v.v, v, der, irregular: irregular || !g || skel(g) !== skel(v.v) };
-  if (g) return { kind: 'gen', text: g, der };
-  return { kind: 'none', der: null };
+  const der = d ? { mu: d[0], ms: d[1], fa: d[2], mf: d[3] } : { mu: '', ms: '', fa: '', mf: '' };
+  if (MASDAR_EXTRA[key] && der.ms) der.ms = MASDAR_EXTRA[key] + ' وَ' + der.ms;
+  // أسماء مشتقة وردت في القرآن من هذا الوزن
+  const qn = root.n.filter(n => n[0] === wid).map(([, k, lem, count]) => ({ k, lem: show(lem), count }));
+  if (att) {
+    const text = cur ? cur.v : (g || show(att.lem));
+    const irregular = overridden || !g || skel(g) !== skel(text);
+    return { kind: 'quran', text, count: att.count, cur, der, qn, irregular, lem: show(att.lem) };
+  }
+  if (g) return { kind: 'gen', text: g, der, qn };
+  return { kind: 'none', der: null, qn };
 }
-// تشريح الفعل: الحروف الزائدة وحروف الجذر
 function anatomy(root, wid) {
-  const w = W(wid);
-  return w.slots.map(s => s.z
+  return W(wid).slots.map(s => s.z
     ? `<span class="z">${wid === 8 && s.z === 'تَ' ? iftaT(root.l[0]) + 'َ' : s.z}</span>`
     : `<span class="rl">${root.l[s.r]}${s.h}<small>${'فعل'[s.r]}</small></span>`).join('');
 }
-const nounsOf = (rid, w) => NOUNS.filter(n => n.r === rid && n.w === w);
+
+// ===== التحميل
+const cache = { roots: {}, suras: {} };
+const getJSON = url => fetch(url).then(r => { if (!r.ok) throw new Error(url); return r.json(); });
+async function loadWall() {
+  const d = await getJSON('data/wall.json');
+  META = d.meta;
+  META.suras.forEach(([n, name]) => { SURAS[n] = name; SURAS[norm(name)] = n; });
+  ROOTS = d.roots.map(x => {
+    const f = {};
+    x.f.forEach(([w, lem, count]) => f[w] = { lem, count });
+    const r = { id: x.id, r: x.r, l: x.l, f, n: x.n };
+    r.total = Object.values(f).reduce((s, v) => s + v.count, 0);
+    return r;
+  });
+  ROOTS.forEach(r => { ROOT_BY_ID[r.id] = r; ROOT_BY_R[r.r] = r; });
+}
+async function loadRoot(id) {
+  return cache.roots[id] || (cache.roots[id] = await getJSON(`data/roots/${id}.json`));
+}
+async function loadSura(n) {
+  return cache.suras[n] || (cache.suras[n] = await getJSON(`data/quran/${n}.json`));
+}
+// موضع "سورة:آية:كلمة" ← نصّ الآية مع إضاءة الكلمة
+async function verseHTML(loc) {
+  const [s, a, w] = loc.split(':').map(Number);
+  const q = await loadSura(s);
+  const words = q.v[a - 1].map((t, i) => i === w - 1 ? `<mark>${t}</mark>` : t).join(' ');
+  return `<div class="ayah">${words} <span class="an">﴿${String(a).replace(/\d/g, d => '٠١٢٣٤٥٦٧٨٩'[d])}﴾</span><span class="ref">${SURAS[s]} · ${a}</span></div>`;
+}
+// المرجع المختار في الشرح ← موضع في المدوّنة
+function curatedLoc(cur, verb) {
+  if (!cur || !verb) return null;
+  const [name, ay] = cur.s.split(':').map(x => x.trim());
+  const sn = SURAS[norm(name)], a = parseInt(ay);
+  const locs = verb.forms.flatMap(f => f.locs);
+  return locs.find(l => { const [x, y] = l.split(':').map(Number); return x === sn && (y === a || y === a + 1); }) || null;
+}

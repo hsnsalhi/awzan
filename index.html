@@ -7,28 +7,32 @@
 <meta name="description" content="أوزان الأفعال العربية ومشتقاتها في القرآن الكريم، مرسومة جدارًا من الزليج: كل جذر نجمة، وكل وزن بتلة">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Aref+Ruqaa:wght@700&family=IBM+Plex+Sans+Arabic:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Amiri+Quran&family=Aref+Ruqaa:wght@700&family=IBM+Plex+Sans+Arabic:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
 <svg id="wall" aria-label="جدار الأوزان"></svg>
+<div id="loading" class="loading">جارٍ رصّ الزليج…</div>
 
 <header class="hud top">
   <div class="brand">
     <h1>زليج الأوزان</h1>
-    <p>كل جذر نجمة · كل وزن بتلة</p>
+    <p>أوزان أفعال القرآن الكريم · كل جذر نجمة وكل وزن بتلة</p>
   </div>
   <div class="search">
-    <input id="q" type="search" placeholder="ابحث عن جذر أو فعل أو اسم… مثل: غفر، استطعم، مسلم" autocomplete="off">
+    <input id="q" type="search" placeholder="ابحث عن جذر أو فعل أو اسم… مثل: غفر، استطعم، مستكبر" autocomplete="off">
     <div id="results" class="results hidden"></div>
   </div>
   <div class="stats">
     <div><b id="sRoots">٠</b><span>جذرًا</span></div>
     <div><b id="sVerbs">٠</b><span>فعلًا</span></div>
-    <div><b id="sNouns">٠</b><span>اسمًا</span></div>
+    <div><b id="sTokens">٠</b><span>موضعًا</span></div>
     <button id="quizBtn" class="pill">✦ تحدٍّ</button>
+    <button id="aboutBtn" class="pill round" aria-label="عن الموقع">؟</button>
   </div>
 </header>
+
+<nav class="hud abc" id="letters"></nav>
 
 <div class="hud zoom">
   <button data-z="in" aria-label="تكبير">＋</button>
@@ -53,6 +57,23 @@
     <button class="x" aria-label="إغلاق">✕</button>
     <div class="quiz-head"><span>النقاط <b id="qScore">٠</b> / <b id="qTotal">٠</b></span><span>🔥 <b id="qStreak">٠</b></span></div>
     <div id="quizCard"></div>
+  </div>
+</div>
+
+<div id="about" class="quiz hidden">
+  <div class="quiz-box about">
+    <button class="x" aria-label="إغلاق">✕</button>
+    <h2>زليج الأوزان</h2>
+    <p>في العربية عشرة أوزان رئيسة للفعل الثلاثي، لكلٍّ منها معنى يضيفه إلى الجذر: <b>اِسْتَفْعَلَ</b> للطلب، <b>فَاعَلَ</b> للمشاركة، <b>أَفْعَلَ</b> للتعدية… فإذا عرفتَ الوزن وقارنتَه بأفعال أخرى عليه، فهمتَ الفعل في الآية.</p>
+    <p>كل جذر في الجدار <b>نجمة عشرية</b>، وكل بتلة وزن: الملوّنة وردت في القرآن، والمنقّطة صيغة قياسية لم ترد، والمعتمة لا تُصاغ. الجذور مرتّبة في ألواح بحسب الحرف الأول، وحجم النجمة بعدد مواضع أفعالها.</p>
+    <h3>المصادر</h3>
+    <ul>
+      <li><a href="https://corpus.quran.com" target="_blank" rel="noopener">مدوّنة القرآن العربية</a> (Quranic Arabic Corpus، جامعة ليدز) — الجذور والأفعال وأوزانها وصيغها ومواضعها، والمشتقات (GPL).</li>
+      <li><a href="https://tanzil.net" target="_blank" rel="noopener">مشروع تنزيل</a> — نصّ الآيات بالرسم العثماني، منقول حرفيًا (CC BY 3.0).</li>
+      <li>ابن فارس، <b>مقاييس اللغة</b>؛ والراغب الأصفهاني، <b>المفردات في غريب القرآن</b> — عبر OpenITI (ملك عام).</li>
+      <li>البيانات مأخوذة من مشروع <a href="https://hsnsalhi.github.io/roots/" target="_blank" rel="noopener">غابة الجذور</a>.</li>
+    </ul>
+    <p class="muted">صيغ المشتقات غير الواردة تُولَّد قياسًا، وشروح المعاني المختصرة لبعض الأفعال اجتهادية.</p>
   </div>
 </div>
 

@@ -102,7 +102,7 @@ async function verseHTML(loc) {
   const [s, a, w] = loc.split(':').map(Number);
   const q = await loadSura(s);
   const words = q.v[a - 1].map((t, i) => i === w - 1 ? `<mark>${t}</mark>` : t).join(' ');
-  return `<div class="ayah">${words} <span class="an">﴿${String(a).replace(/\d/g, d => '٠١٢٣٤٥٦٧٨٩'[d])}﴾</span><span class="ref">${SURAS[s]} · ${a}</span></div>`;
+  return `<div class="ayah">${words} <span class="an">﴿${a}﴾</span><span class="ref">${SURAS[s]} · ${a}</span></div>`;
 }
 // المرجع المختار في الشرح ← موضع في المدوّنة
 function curatedLoc(cur, verb) {

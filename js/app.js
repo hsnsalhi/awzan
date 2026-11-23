@@ -1,6 +1,6 @@
 (async () => {
 const $ = s => document.querySelector(s);
-const AR = n => String(n).replace(/\d/g, d => '٠١٢٣٤٥٦٧٨٩'[d]);
+const AR = n => String(n);   // chiffres 0123…
 const deg = Math.PI / 180;
 const P = (r, t) => [r * Math.cos(t * deg), r * Math.sin(t * deg)];
 const pts = arr => arr.map(p => p.map(n => n.toFixed(1)).join(',')).join(' ');

@@ -143,7 +143,8 @@ addEventListener('resize', () => { clearTimeout(window.__rz); window.__rz = setT
 
 // ===== شريط الحروف
 $('#letters').innerHTML = ALPHA.filter(a => ROOTS.some(r => letterOf(r) === a)).map(a => `<button data-a="${a}">${a}</button>`).join('');
-$('#letters').onclick = e => { const b = e.target.closest('button'); if (b) flyTo(b.dataset.a); };
+$('#letters').onclick = e => { const b = e.target.closest('button'); if (!b) return;
+  if (document.body.classList.contains('riad') && window.riad) window.riad.focus(b.dataset.a); else flyTo(b.dataset.a); };
 
 // ===== التلميح
 const tip = $('#tip');
@@ -171,6 +172,7 @@ function setFilterClasses() {
 function setFilter(w) {
   filter = w && filter !== w ? w : null;
   setFilterClasses(); renderFilters();
+  if (window.riad) window.riad.setFilter(filter);
   if (filter) openWaznPanel(filter); else closeSide();
 }
 
@@ -363,12 +365,82 @@ window.awzanBack = () => {
     if (!el.classList.contains('hidden')) { el.classList.add('hidden'); return true; }
   }
   if (filter) { setFilter(null); return true; }
+  if (!document.body.classList.contains('riad')) { enterRiad(); return true; }
   return false;
 };
 document.addEventListener('click', e => {
   const a = e.target.closest('a[target=_blank]');
   if (a && window.AwzanApp) { e.preventDefault(); window.AwzanApp.postMessage(a.href); }
 });
+
+
+// ===== لوحات الزليج على قماش (لمجسّم الرياض)
+const PANEL_TOP = HEAD - 30;
+function drawGrove(canvas, a, filt) {
+  const g = groves.find(x => x.a === a); if (!g) return;
+  const pw = g.w, ph = g.h - PANEL_TOP, TEX = 1024;
+  const sc = TEX / Math.max(pw, ph);
+  canvas.width = Math.round(pw * sc); canvas.height = Math.round(ph * sc);
+  const c = canvas.getContext('2d');
+  const bg = c.createLinearGradient(0, 0, 0, canvas.height);
+  bg.addColorStop(0, '#102229'); bg.addColorStop(1, '#0a161b');
+  c.fillStyle = bg; c.fillRect(0, 0, canvas.width, canvas.height);
+  // شبكة معيّنات خفيفة
+  c.strokeStyle = 'rgba(201,162,39,.10)'; c.lineWidth = 1;
+  const d = 60 * sc;
+  for (let x = -canvas.height; x < canvas.width + canvas.height; x += d) {
+    c.beginPath(); c.moveTo(x, 0); c.lineTo(x + canvas.height, canvas.height); c.stroke();
+    c.beginPath(); c.moveTo(x, canvas.height); c.lineTo(x + canvas.height, 0); c.stroke();
+  }
+  // إطار مزدوج
+  c.strokeStyle = '#c9a227'; c.lineWidth = Math.max(2, 10 * sc);
+  c.strokeRect(6 * sc, 6 * sc, canvas.width - 12 * sc, canvas.height - 12 * sc);
+  c.lineWidth = Math.max(1, 4 * sc); c.strokeStyle = 'rgba(201,162,39,.55)';
+  c.strokeRect(26 * sc, 26 * sc, canvas.width - 52 * sc, canvas.height - 52 * sc);
+  const poly = (ptsArr) => { c.beginPath(); ptsArr.forEach(([x, y], i) => i ? c.lineTo(x, y) : c.moveTo(x, y)); c.closePath(); };
+  g.list.forEach(r => {
+    const p = tilePos[r.id], R = sizeOf(r);
+    c.save(); c.translate((p.x - g.x) * sc, (p.y - g.y - PANEL_TOP) * sc); c.scale(sc, sc);
+    const r0 = R * 0.36, rm = R * 0.62;
+    poly(starOutline(R * 1.04, rm * 1.04)); c.fillStyle = '#060c0f'; c.fill();
+    c.strokeStyle = 'rgba(201,162,39,.6)'; c.lineWidth = 2; c.stroke();
+    AWZAN.forEach((w, i) => {
+      const kind = r.f[w.id] ? 'quran' : (canGenerate(r, w.id) ? 'gen' : 'none');
+      poly(kite(i, R, r0, rm));
+      c.globalAlpha = filt && filt !== w.id ? 0.12 : 1;
+      if (kind === 'quran') { c.fillStyle = w.color; c.fill(); c.fillStyle = 'rgba(255,255,255,.18)'; c.fill(); }
+      else if (kind === 'gen') { c.fillStyle = w.color + '26'; c.fill(); }
+      else { c.fillStyle = '#0d181c'; c.fill(); }
+      c.globalAlpha = 1;
+    });
+    poly(Array.from({ length: 10 }, (_, i) => P(r0 * 0.98, ang(i) + 18)));
+    c.fillStyle = '#f1e6cc'; c.fill(); c.strokeStyle = '#c9a227'; c.lineWidth = 3; c.stroke();
+    c.fillStyle = '#1b2a2f'; c.textAlign = 'center'; c.textBaseline = 'middle';
+    c.font = `700 ${R * (r.l.length > 3 ? 0.17 : 0.22)}px Amiri`;
+    c.direction = 'rtl'; c.fillText(r.l.join(' '), 0, R * 0.02);
+    c.restore();
+  });
+  return { w: canvas.width, h: canvas.height, ratio: pw / ph };
+}
+
+// ===== الأوضاع: الرياض (مجسّم) ↔ الجدار (مسطّح)
+function enterWall(a) {
+  document.body.classList.remove('riad');
+  if (window.riad) window.riad.pause();
+  renderWall(); setFilterClasses();
+  const g = groves.find(x => x.a === a);
+  if (g) fitBox(g.x - 40, g.y - 260, g.w + 80, g.h + 400, false); else fit();
+}
+function enterRiad() {
+  document.body.classList.add('riad');
+  if (window.riad) window.riad.resume();
+}
+$('#toRiad').onclick = enterRiad;
+window.awzan = {
+  get groves() { return groves; }, drawGrove, enterWall, enterRiad, setFilter,
+  get filter() { return filter; }, AWZAN, openWaznPanel,
+  rootsCount: a => (groves.find(g => g.a === a) || { list: [] }).list.length,
+};
 
 // ===== البدء
 $('#sRoots').textContent = AR(META.counts.roots);
@@ -377,6 +449,7 @@ $('#sTokens').textContent = AR(META.counts.tokens);
 renderFilters();
 renderWall();
 fit();
+window.dispatchEvent(new Event('awzan-ready'));
 const hash = decodeURIComponent(location.hash.slice(1)).split('/');
 if (hash[0] && ROOT_BY_R[hash[0]]) openRose(ROOT_BY_R[hash[0]].id, +hash[1] || undefined);
 setTimeout(() => $('#hint').classList.add('fade'), 9000);

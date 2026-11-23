@@ -389,9 +389,13 @@ async function main() {
   document.body.classList.add('riad-ready');
 }
 
-main().catch(e => {
+main().catch(async e => {
   console.error('riad', e);
-  // بلا WebGL : نعرض الجدار المسطّح مباشرة
-  document.body.classList.remove('riad');
-  if (window.awzan) window.awzan.enterWall(null);
+  // بلا WebGL : جدار الحرف الأول مباشرة، مع تنبيه
+  await whenReady();
+  document.body.classList.add('no3d');
+  window.awzan.enterWall(null);
+  const h = $('#hint');
+  h.querySelector('.in-wall').textContent = 'العرض ثلاثي الأبعاد غير متاح في هذا المتصفح · اختر جدارًا من شريط الحروف';
+  h.classList.remove('fade');
 });

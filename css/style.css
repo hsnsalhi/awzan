@@ -227,3 +227,4 @@ body.riad .toriad{display:none}
 .enterwall b{font:700 20px var(--f-t)}
 body.riad .hint{bottom:calc(140px + env(safe-area-inset-bottom))}
 @media (max-width:820px){ .toriad{top:calc(160px + env(safe-area-inset-top));right:12px} .enterwall{bottom:calc(84px + env(safe-area-inset-bottom))} }
+body.no3d .toriad{display:none}

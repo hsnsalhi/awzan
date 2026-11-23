@@ -73,10 +73,11 @@ function layoutWall() {
   }));
 }
 const sizeOf = r => TILE * Math.min(1.12, Math.max(0.62, 0.55 + 0.11 * Math.log2(1 + r.total)));
+let curWall = null;   // الجدار المفتوح (حرف واحد)
 function renderWall() {
   layoutWall();
   let s = `<defs>${GLAZE}</defs>`;
-  groves.forEach(g => {
+  groves.filter(g => g.a === curWall).forEach(g => {
     s += `<g class="grove" data-a="${g.a}"><rect class="gbg" x="${g.x}" y="${g.y}" width="${g.w}" height="${g.h}" rx="40"/>
       <text class="gletter" x="${g.x + g.w - 90}" y="${g.y + 125}">${g.a}</text>
       <text class="gcount" x="${g.x + g.w - 230}" y="${g.y + 100}">${AR(g.list.length)} جذرًا</text>`;
@@ -109,15 +110,12 @@ function fitBox(bx, by, bw, bh, animate) {
   };
   requestAnimationFrame(step);
 }
-function fit(animate) {
-  const xs = groves.map(g => g.x), ys = groves.map(g => g.y);
-  const bx = Math.min(...xs) - 40, by = Math.min(...ys) - 160;
-  fitBox(bx, by, Math.max(...groves.map(g => g.x + g.w)) - bx + 40, Math.max(...groves.map(g => g.y + g.h)) - by + 140, animate);
-}
-function flyTo(a) { const g = groves.find(g => g.a === a); if (g) fitBox(g.x - 40, g.y - 260, g.w + 80, g.h + 400, true); }
+function wallBox() { const g = groves.find(x => x.a === curWall) || groves[0]; return [g.x - 40, g.y - 260, g.w + 80, g.h + 400]; }
+function fit(animate) { fitBox(...wallBox(), animate); }
+function flyTo(a) { curWall = a; renderWall(); fit(false); }
 function zoomAt(f, px = innerWidth / 2, py = innerHeight / 2) {
   const mx = vb.x + px / innerWidth * vb.w, my = vb.y + py / innerHeight * vb.h;
-  const nw = Math.min(Math.max(vb.w * f, 300), 60000); f = nw / vb.w;
+  const nw = Math.min(Math.max(vb.w * f, 300), Math.max(wallBox()[2], wallBox()[3] * innerWidth / innerHeight) * 1.6); f = nw / vb.w;
   vb = { x: mx - (mx - vb.x) * f, y: my - (my - vb.y) * f, w: nw, h: vb.h * f }; setVB();
 }
 wall.addEventListener('wheel', e => { e.preventDefault(); zoomAt(e.deltaY > 0 ? 1.12 : 1 / 1.12, e.clientX, e.clientY); }, { passive: false });
@@ -427,9 +425,8 @@ function drawGrove(canvas, a, filt) {
 function enterWall(a) {
   document.body.classList.remove('riad');
   if (window.riad) window.riad.pause();
-  renderWall(); setFilterClasses();
-  const g = groves.find(x => x.a === a);
-  if (g) fitBox(g.x - 40, g.y - 260, g.w + 80, g.h + 400, false); else fit();
+  curWall = a || groves[0].a;
+  renderWall(); fit(false);
 }
 function enterRiad() {
   document.body.classList.add('riad');
